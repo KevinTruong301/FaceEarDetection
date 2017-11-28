@@ -2,6 +2,7 @@ package edu.fullerton.kevin.earfacedetection;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -17,7 +18,6 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -29,14 +29,12 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
 
-
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
-import org.opencv.core.Rect;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +54,8 @@ public class Camera extends AppCompatActivity{
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
-
+    private File mFile;
+    private int mSensorOrientation;
     private static final int ACTIVITY_START_CAMERA_APP = 0;
     private static final int STATE_PREVIEW = 0;
     private static final int STATE_WAIT_LOCK = 1;
@@ -65,15 +64,30 @@ public class Camera extends AppCompatActivity{
     private TextureView mTextureView;
     private String mCameraId;
     private ImageReader mImageReader;
+    private Train train = new Train();
+
     private final ImageReader.OnImageAvailableListener mImageAvalibleListener =
             new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    Image image = reader.acquireLatestImage();
-                    trainCV(image);
-                    if(image != null){
-                        image.close();
+
+                    if(OpenCVLoader.initDebug()){
+
+                        train.setContext(getApplicationContext());
+
+                        Image image = reader.acquireLatestImage();
+                        train.setImage(image);
+                        if(image != null){
+                            image.close();
+                        }
+
+                        train.trainCV();
+                        //mBackgroundHandler.post(new ImageSaver(image, mFile));
                     }
+                    else{
+                        Toast.makeText(getApplicationContext(), "Open CV not loaded", Toast.LENGTH_SHORT);
+                    }
+
                 }
             };
 
@@ -135,7 +149,7 @@ public class Camera extends AppCompatActivity{
             switch(mState){
                 case STATE_PREVIEW:
                     //Do nothing
-                        //captureStillImage();
+                    //captureStillImage();
                     break;
             }
         }
@@ -164,107 +178,45 @@ public class Camera extends AppCompatActivity{
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
 
-    public void trainCV(Image image){
-        MatOfRect faces = new MatOfRect();
-        org.opencv.core.Size sizeMin = new org.opencv.core.Size(100,100);
-       /* try{
-            sem.acquire();
-            if(numPic < 3) {
-                MatOfRect faces = new MatOfRect();
-                String extStorageDirectory = Environment.getExternalStorageDirectory().toString();
-                String haarPart;
-                org.opencv.core.Size sizeMin = new org.opencv.core.Size(100,100);
-                org.opencv.core.Size sizeMax = new org.opencv.core.Size(1000, 1000);
-                haarPart = "nothing";
-                //using front camera switches the ears
-                if(bodyPart.equals("close")){
-                    if (numBody == 0) {
-                        haarPart = "/haarcascade_frontalface_default.xml";
-                        sizeMin = new org.opencv.core.Size(430, 430);
-                        sizeMax = new org.opencv.core.Size(600, 600);
-                    } else if (numBody == 2) {
-                        haarPart = "/haarcascade_mcs_leftear.xml";
-                        sizeMin = new org.opencv.core.Size(70, 120);
-                        sizeMax = new org.opencv.core.Size(100, 160);
-                    } else if (numBody == 1) {
-                        haarPart = "/haarcascade_mcs_rightear.xml";
-                        sizeMin = new org.opencv.core.Size(70, 120);
-                        sizeMax = new org.opencv.core.Size(100, 160);
-                    }
-                }
-                else if(bodyPart.equals("medium")){
-                    if (numBody == 0) {
-                        haarPart = "/haarcascade_frontalface_default.xml";
-                        sizeMin = new org.opencv.core.Size(290, 290);
-                        sizeMax = new org.opencv.core.Size(350, 350);
-                    } else if (numBody == 2) {
-                        haarPart = "/haarcascade_mcs_leftear.xml";
-                        sizeMin = new org.opencv.core.Size(60, 110);
-                        sizeMax = new org.opencv.core.Size(80, 130);
-                    } else if (numBody == 1) {
-                        haarPart = "/haarcascade_mcs_rightear.xml";
-                        sizeMin = new org.opencv.core.Size(60, 110);
-                        sizeMax = new org.opencv.core.Size(80, 130);
-                    }
-                }
-                else if(bodyPart.equals("far")){
-                    if (numBody == 0) {
-                        haarPart = "/haarcascade_frontalface_default.xml";
-                        sizeMin = new org.opencv.core.Size(190, 190);
-                        sizeMax = new org.opencv.core.Size(250, 250);
-                    } else if (numBody == 2) {
-                        haarPart = "/haarcascade_mcs_leftear.xml";
-                        sizeMin = new org.opencv.core.Size(35, 65);
-                        sizeMax = new org.opencv.core.Size(55, 85);
-                    } else if (numBody == 1) {
-                        haarPart = "/haarcascade_mcs_rightear.xml";
-                        sizeMin = new org.opencv.core.Size(35, 65);
-                        sizeMax = new org.opencv.core.Size(55, 85);
-                    }
-                }
 
-                //Log.d(TAG, "Looking for "+ haarPart);
+    private static class ImageSaver implements Runnable {
 
-                String tempPath = getTempDirectoryPath();
-                CascadeClassifier faceDetector = new CascadeClassifier(extStorageDirectory + haarPart);
+        /**
+         * The JPEG image
+         */
+        private final Image mImage;
+        /**
+         * The file we save the image into.
+         */
+        private final File mFile;
 
-                faceDetector.detectMultiScale(gray, faces, 1.05, 5, 2, sizeMin, sizeMax);
-
-                Rect[] facesArray = faces.toArray();
-                for (int i = 0; i < facesArray.length; i++) {
-                    numBody++;
-                    numPic++;
-
-
-
-                    Mat grayPic = gray.submat(facesArray[i]);
-
-                    File partFolder = new File(tempPath + "/" + bodyPart);
-
-                    if (!partFolder.exists()) {
-                        partFolder.mkdir();
-                    }
-
-
-                    Imgcodecs.imwrite(tempPath + "/" + bodyPart + "/" + bodyPart + "_" + numPic + ".jpg", grayPic);
-
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, "{\"message\":\"pattern detected\", \"index\":" + numPic + "}");
-                    result.setKeepCallback(true);
-                    cb.sendPluginResult(result);
-
-                    called_success_detection = true;
-                    called_failed_detection = false;
-                    detected_index = 1;
-
-                }
-
-            }
-
-        } catch (InterruptedException exc) {
-            System.out.println(exc);
+        ImageSaver(Image image, File file) {
+            mImage = image;
+            mFile = file;
         }
-        sem.release();*/
 
+        @Override
+        public void run() {
+            ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(mFile);
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                mImage.close();
+                if (null != output) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
 
     }
 
@@ -289,6 +241,7 @@ public class Camera extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera);
 
+        mFile = new File(getExternalFilesDir(null), "pic.jpg");
 
 
 
@@ -331,6 +284,10 @@ public class Camera extends AppCompatActivity{
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
                 Size largestImageSize = Collections.max(
+                        Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)),
+                        new CompareSizesByArea());
+
+/*                Size largestImageSize = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new Comparator<Size>() {
                             @Override
@@ -338,20 +295,90 @@ public class Camera extends AppCompatActivity{
                                 return Long.signum(o1.getWidth() * o1.getHeight() - o2.getWidth() * o2.getHeight());
                             }
                         }
-                );
+                );*/
 
                 mImageReader =ImageReader.newInstance(largestImageSize.getWidth(),
                         largestImageSize.getHeight(),
                         ImageFormat.YUV_420_888,
-                        1);
+                        4);
 
                 mImageReader.setOnImageAvailableListener(mImageAvalibleListener, mBackgroundHandler);
 
-                mPreviewSize = getPreferredPreviewSize(map.getOutputSizes(SurfaceTexture.class), width, height);
+                int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
+                //noinspection ConstantConditions
+                mSensorOrientation = cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+                boolean swappedDimensions = false;
+                switch (displayRotation) {
+                    case Surface.ROTATION_0:
+                    case Surface.ROTATION_180:
+                        if (mSensorOrientation == 90 || mSensorOrientation == 270) {
+                            swappedDimensions = true;
+                        }
+                        break;
+                    case Surface.ROTATION_90:
+                    case Surface.ROTATION_270:
+                        if (mSensorOrientation == 0 || mSensorOrientation == 180) {
+                            swappedDimensions = true;
+                        }
+                        break;
+                    default:
+                        //Log.e(TAG, "Display rotation is invalid: " + displayRotation);
+                }
+
+                Point displaySize = new Point();
+                getWindowManager().getDefaultDisplay().getSize(displaySize);
+                int rotatedPreviewWidth = width;
+                int rotatedPreviewHeight = height;
+                int maxPreviewWidth = displaySize.x;
+                int maxPreviewHeight = displaySize.y;
+
+                if (swappedDimensions) {
+                    rotatedPreviewWidth = height;
+                    rotatedPreviewHeight = width;
+                    maxPreviewWidth = displaySize.y;
+                    maxPreviewHeight = displaySize.x;
+                }
+
+                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
+                        maxPreviewHeight, largestImageSize);
                 mCameraId = cameraId;
             }
         } catch (CameraAccessException e){
             e.printStackTrace();
+        }
+    }
+
+    private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
+                                          int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
+
+        // Collect the supported resolutions that are at least as big as the preview Surface
+        List<Size> bigEnough = new ArrayList<>();
+        // Collect the supported resolutions that are smaller than the preview Surface
+        List<Size> notBigEnough = new ArrayList<>();
+        int w = aspectRatio.getWidth();
+        int h = aspectRatio.getHeight();
+        for (Size option : choices) {
+            if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight &&
+                    option.getHeight() == option.getWidth() * h / w) {
+                if (option.getWidth() >= textureViewWidth &&
+                        option.getHeight() >= textureViewHeight) {
+                    bigEnough.add(option);
+                } else {
+                    notBigEnough.add(option);
+                }
+            }
+        }
+
+        // Pick the smallest of those big enough. If there is no one big enough, pick the
+        // largest of those not big enough.
+        if (bigEnough.size() > 0) {
+            return Collections.min(bigEnough, new CompareSizesByArea());
+        } else if (notBigEnough.size() > 0) {
+            return Collections.max(notBigEnough, new CompareSizesByArea());
+        } else {
+            //Log.e(TAG, "Couldn't find any suitable preview size");
+            return choices[0];
         }
     }
 
@@ -380,6 +407,17 @@ public class Camera extends AppCompatActivity{
             }
         }
         return mapSizes[0];
+    }
+
+    static class CompareSizesByArea implements Comparator<Size> {
+
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                    (long) rhs.getWidth() * rhs.getHeight());
+        }
+
     }
 
     private  void openCamera() {
@@ -422,6 +460,12 @@ public class Camera extends AppCompatActivity{
                                 return;
                             }
                             try{
+
+                                //rotation here?
+
+                                int rotation = getWindowManager().getDefaultDisplay().getRotation();
+                                mPreviewCaptureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+
                                 mPreviewCaptureRequest = mPreviewCaptureRequestBuilder.build();
                                 mCameraCaptureSession = session;
                                 //this is what streams?
@@ -466,13 +510,13 @@ public class Camera extends AppCompatActivity{
         }
     }
 
-/*    private void captureStillImage(){
+    private void captureStillImage(){
         try {
             CaptureRequest.Builder captureStillBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureStillBuilder.addTarget(mImageReader.getSurface());
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
-            *//*captureStillBuilder.set(CaptureRequest.JPEG_ORIENTATION,
-                    ORIENTATIONS.get(rotation));*//*
+            captureStillBuilder.set(CaptureRequest.JPEG_ORIENTATION,
+                    ORIENTATIONS.get(rotation));
 
             CameraCaptureSession.CaptureCallback captureCallback =
                     new CameraCaptureSession.CaptureCallback() {
@@ -490,5 +534,5 @@ public class Camera extends AppCompatActivity{
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-    }*/
+    }
 }

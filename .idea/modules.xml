@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/EarFaceDetection.iml" filepath="$PROJECT_DIR$/EarFaceDetection.iml" />
+      <module fileurl="file://C:\Users\Kevin\Documents\FaceEarDetection\EarFaceDetection.iml" filepath="C:\Users\Kevin\Documents\FaceEarDetection\EarFaceDetection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/FaceEarDetection.iml" filepath="$PROJECT_DIR$/FaceEarDetection.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary331/openCVLibrary331.iml" filepath="$PROJECT_DIR$/openCVLibrary331/openCVLibrary331.iml" />
     </modules>
