@@ -30,7 +30,7 @@ public class Train {
     private int numPic;
     private Mat gray;
     private Mat resizeGray;
-    private String bodyPart;
+    private String distance;
     private int numBody = 0;
     private Semaphore sem = new Semaphore(1);
     private MatOfRect faces;
@@ -38,6 +38,9 @@ public class Train {
     private Image trainImage;
     private String TAG = "Training";
 
+    public Train(){
+
+    }
 
     public void setContext(Context context){
         trainContext = context;
@@ -92,8 +95,8 @@ public class Train {
                 org.opencv.core.Size sizeMax = new org.opencv.core.Size(1000, 1000);
                 haarPart = "nothing";
                 //using front camera switches the ears
-                bodyPart = "close";
-                if(bodyPart.equals("close")){
+                distance = "close";
+                if(distance.equals("close")){
                     if (numBody == 0) {
                         haarPart = "/haarcascade_frontalface_default.xml";
                         sizeMin = new org.opencv.core.Size(430, 430);
@@ -108,7 +111,7 @@ public class Train {
                         sizeMax = new org.opencv.core.Size(100, 160);
                     }
                 }
-                else if(bodyPart.equals("medium")){
+                else if(distance.equals("medium")){
                     if (numBody == 0) {
                         haarPart = "/haarcascade_frontalface_default.xml";
                         sizeMin = new org.opencv.core.Size(290, 290);
@@ -123,7 +126,7 @@ public class Train {
                         sizeMax = new org.opencv.core.Size(80, 130);
                     }
                 }
-                else if(bodyPart.equals("far")){
+                else if(distance.equals("far")){
                     if (numBody == 0) {
                         haarPart = "/haarcascade_frontalface_default.xml";
                         sizeMin = new org.opencv.core.Size(190, 190);
@@ -143,14 +146,14 @@ public class Train {
                 String tempPath = getTempDirectoryPath();
                 CascadeClassifier faceDetector = new CascadeClassifier(extStorageDirectory + haarPart);
                 faceDetector.detectMultiScale(resizeGray, faces, 1.05, 5, 2, sizeMin, sizeMax);
-                File partFolder = new File(tempPath + "/" + bodyPart);
+                File partFolder = new File(tempPath + "/" + distance);
 
                 if (!partFolder.exists()) {
                     partFolder.mkdir();
                 }
 
 
-                //Imgcodecs.imwrite(tempPath + "/" + bodyPart + "/" + bodyPart + "_" + numPic + ".jpg", gray);
+                //Imgcodecs.imwrite(tempPath + "/" + distance + "/" + distance + "_" + numPic + ".jpg", gray);
                 Rect[] facesArray = faces.toArray();
                 for (int i = 0; i < facesArray.length; i++) {
                     numBody++;
@@ -160,14 +163,14 @@ public class Train {
 
                     Mat grayPic = resizeGray.submat(facesArray[i]);
 
-                    partFolder = new File(tempPath + "/" + bodyPart);
+                    partFolder = new File(tempPath + "/" + distance);
 
                     if (!partFolder.exists()) {
                         partFolder.mkdir();
                     }
 
 
-                    Imgcodecs.imwrite(tempPath + "/" + bodyPart + "/" + bodyPart + "_" + numPic + ".jpg", grayPic);
+                    Imgcodecs.imwrite(tempPath + "/" + distance + "/" + distance + "_" + numPic + ".jpg", grayPic);
 
 
                 }

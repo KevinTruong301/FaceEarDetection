@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Menu;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
@@ -64,7 +65,7 @@ public class Camera extends AppCompatActivity{
     private TextureView mTextureView;
     private String mCameraId;
     private ImageReader mImageReader;
-    private Train train = new Train();
+    private Train train;
 
     private final ImageReader.OnImageAvailableListener mImageAvalibleListener =
             new ImageReader.OnImageAvailableListener() {
@@ -83,7 +84,7 @@ public class Camera extends AppCompatActivity{
                         }catch(Exception e){
 
                         }
-                        
+
                         //mBackgroundHandler.post(new ImageSaver(image, mFile));
                     }
                     else{
@@ -223,29 +224,13 @@ public class Camera extends AppCompatActivity{
     }
 
 
-    class DownloadFeed extends AsyncTask<Void, Void, Void>{
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-        }
-    }
-
-
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera);
 
         mFile = new File(getExternalFilesDir(null), "pic.jpg");
 
-
+        train = new Train();
 
         mTextureView = (TextureView) findViewById(R.id.cameraView);
     }
@@ -273,6 +258,11 @@ public class Camera extends AppCompatActivity{
         super.onPause();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.distance_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
     private void setupCamera(int width, int height){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
