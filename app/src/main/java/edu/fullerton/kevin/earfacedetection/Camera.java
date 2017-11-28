@@ -23,9 +23,11 @@ import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.menu.MenuView;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
@@ -66,6 +68,8 @@ public class Camera extends AppCompatActivity{
     private String mCameraId;
     private ImageReader mImageReader;
     private Train train;
+    private MenuItem currentDistance;
+
 
     private final ImageReader.OnImageAvailableListener mImageAvalibleListener =
             new ImageReader.OnImageAvailableListener() {
@@ -261,7 +265,24 @@ public class Camera extends AppCompatActivity{
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.distance_menu, menu);
+        currentDistance = menu.getItem(0);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.close:
+                currentDistance.setTitle("Close");
+                break;
+            case R.id.medium:
+                currentDistance.setTitle("Medium");
+                break;
+            case R.id.far:
+                currentDistance.setTitle("Far");
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void setupCamera(int width, int height){
