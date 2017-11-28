@@ -72,16 +72,18 @@ public class Camera extends AppCompatActivity{
                 public void onImageAvailable(ImageReader reader) {
 
                     if(OpenCVLoader.initDebug()){
+                        try{
+                            train.setContext(getApplicationContext());
+                            Image image = reader.acquireLatestImage();
+                            train.setImage(image);
+                            train.trainCV();
+                            if(image != null){
+                                image.close();
+                            }
+                        }catch(Exception e){
 
-                        train.setContext(getApplicationContext());
-
-                        Image image = reader.acquireLatestImage();
-                        train.setImage(image);
-                        if(image != null){
-                            image.close();
                         }
-
-                        train.trainCV();
+                        
                         //mBackgroundHandler.post(new ImageSaver(image, mFile));
                     }
                     else{
