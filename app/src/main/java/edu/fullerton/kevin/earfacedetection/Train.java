@@ -9,9 +9,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
-import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.File;
@@ -31,7 +29,7 @@ public class Train {
     private Mat gray;
     private Mat resizeGray;
     private String distance;
-    private int numBody = 0;
+    private int numBody;
     private Semaphore sem = new Semaphore(1);
     private MatOfRect faces;
     private Context trainContext;
@@ -39,7 +37,8 @@ public class Train {
     private String TAG = "Training";
 
     public Train(){
-
+        distance = "close";
+        numBody = 0;
     }
 
     public void setContext(Context context){
@@ -57,37 +56,28 @@ public class Train {
         gray.put(0, 0, bytes);
 
         transpose(gray, gray);
+        flip(gray,gray, 0);
     }
 
-
-    void rotateMat(Mat matImage, int rotFlag) {
-        //1=ClockWise
-        //2=CounterClockWise
-        //3=180degree
-        if(rotFlag == 1) {transpose(matImage, matImage); flip(matImage, matImage, 1);}
-        else if(rotFlag == 2) {transpose(matImage, matImage);flip(matImage, matImage, 0);}
-        else if(rotFlag == 3) {flip(matImage, matImage, -1);}
+    void changeDistance(String distanceChange){
+        distance = distanceChange;
+        numBody = 0;
     }
+
 
     public void trainCV(){
+
+
+
         try{
             sem.acquire();
 
             faces = new MatOfRect();
             resizeGray = new Mat();
 
-/*            Mat rotMat;
-            Point center = new Point(yuv.cols() / 2, yuv.rows() / 2);
-            rotMat = Imgproc.getRotationMatrix2D(center, 270, 1);
-            Imgproc.warpAffine(yuv, gray, rotMat, yuv.size());
-            //Imgcodecs.imwrite("E://out//lena-rotate.jpg", destination);*/
-
-
-
-
             if(numPic < 3) {
 
-                Imgproc.resize(gray, resizeGray, new Size(gray.rows()/2, gray.cols()/2));
+                //Imgproc.resize(gray, resizeGray, new Size(gray.rows()/2, gray.cols()/2));
 
                 String extStorageDirectory = Environment.getExternalStorageDirectory().toString();
                 String haarPart;
@@ -95,20 +85,19 @@ public class Train {
                 org.opencv.core.Size sizeMax = new org.opencv.core.Size(1000, 1000);
                 haarPart = "nothing";
                 //using front camera switches the ears
-                distance = "close";
                 if(distance.equals("close")){
                     if (numBody == 0) {
                         haarPart = "/haarcascade_frontalface_default.xml";
-                        sizeMin = new org.opencv.core.Size(430, 430);
+                        sizeMin = new org.opencv.core.Size(860, 860);
                         sizeMax = new org.opencv.core.Size(600, 600);
                     } else if (numBody == 2) {
                         haarPart = "/haarcascade_mcs_leftear.xml";
-                        sizeMin = new org.opencv.core.Size(70, 120);
-                        sizeMax = new org.opencv.core.Size(100, 160);
+                        sizeMin = new org.opencv.core.Size(35, 500);
+                        sizeMax = new org.opencv.core.Size(55, 500);
                     } else if (numBody == 1) {
                         haarPart = "/haarcascade_mcs_rightear.xml";
-                        sizeMin = new org.opencv.core.Size(70, 120);
-                        sizeMax = new org.opencv.core.Size(100, 160);
+                        sizeMin = new org.opencv.core.Size(35, 500);
+                        sizeMax = new org.opencv.core.Size(50, 500);
                     }
                 }
                 else if(distance.equals("medium")){
@@ -145,15 +134,13 @@ public class Train {
                 Log.d(TAG, "Looking for "+ haarPart);
                 String tempPath = getTempDirectoryPath();
                 CascadeClassifier faceDetector = new CascadeClassifier(extStorageDirectory + haarPart);
-                faceDetector.detectMultiScale(resizeGray, faces, 1.05, 5, 2, sizeMin, sizeMax);
+                faceDetector.detectMultiScale(gray, faces, 1.05, 5, 2, sizeMin, sizeMax);
                 File partFolder = new File(tempPath + "/" + distance);
 
                 if (!partFolder.exists()) {
                     partFolder.mkdir();
                 }
 
-
-                //Imgcodecs.imwrite(tempPath + "/" + distance + "/" + distance + "_" + numPic + ".jpg", gray);
                 Rect[] facesArray = faces.toArray();
                 for (int i = 0; i < facesArray.length; i++) {
                     numBody++;
@@ -161,7 +148,7 @@ public class Train {
 
                     Log.d(TAG, haarPart + " detected");
 
-                    Mat grayPic = resizeGray.submat(facesArray[i]);
+                    Mat grayPic = gray.submat(facesArray[i]);
 
                     partFolder = new File(tempPath + "/" + distance);
 

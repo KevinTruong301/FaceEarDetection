@@ -274,12 +274,15 @@ public class Camera extends AppCompatActivity{
         switch(item.getItemId()){
             case R.id.close:
                 currentDistance.setTitle("Close");
+                train.changeDistance("close");
                 break;
             case R.id.medium:
                 currentDistance.setTitle("Medium");
+                train.changeDistance("medium");
                 break;
             case R.id.far:
                 currentDistance.setTitle("Far");
+                train.changeDistance("far");
                 break;
         }
         return super.onOptionsItemSelected(item);
