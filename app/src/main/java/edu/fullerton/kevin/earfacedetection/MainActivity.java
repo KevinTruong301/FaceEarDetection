@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
     final private int PERMISSION_CAMERA = 1;
     final private int PERMISSION_STORAGE = 2;
+    final private int PERMISSION_VIBRATION = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.CAMERA},
-                PERMISSION_CAMERA);
+                PERMISSION_STORAGE);
 
 
     }
@@ -48,12 +49,17 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case PERMISSION_CAMERA:{
+            case PERMISSION_STORAGE:{
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        PERMISSION_STORAGE);
+                        PERMISSION_VIBRATION);
             }
 
+            case PERMISSION_VIBRATION:{
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.VIBRATE},
+                        0);
+            }
         }
     }
 
