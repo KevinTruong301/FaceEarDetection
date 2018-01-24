@@ -245,7 +245,7 @@ public class Camera extends AppCompatActivity{
 
     public void onResume(){
         super.onResume();
-
+        openBackgroundThread();
 
         if(mTextureView.isAvailable()){
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
@@ -265,7 +265,7 @@ public class Camera extends AppCompatActivity{
         super.onPause();
     }
 
-   /* @Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.distance_menu, menu);
         currentDistance = menu.getItem(0);
@@ -289,7 +289,7 @@ public class Camera extends AppCompatActivity{
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }*/
+    }
 
     private void setupCamera(int width, int height){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
