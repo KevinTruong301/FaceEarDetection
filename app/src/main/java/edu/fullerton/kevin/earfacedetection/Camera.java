@@ -1,6 +1,7 @@
 package edu.fullerton.kevin.earfacedetection;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
@@ -16,20 +17,19 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.menu.MenuView;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.Window;
 import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
@@ -64,7 +64,7 @@ public class Camera extends AppCompatActivity{
     private static final int STATE_WAIT_LOCK = 1;
     private int mState;
     private Size mPreviewSize;
-    private TextureView mTextureView;
+    private AutoFitTextureView mTextureView;
     private String mCameraId;
     private ImageReader mImageReader;
     private Train train;
@@ -230,19 +230,22 @@ public class Camera extends AppCompatActivity{
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.camera);
+
+
 
         mFile = new File(getExternalFilesDir(null), "pic.jpg");
 
         train = new Train();
 
-        mTextureView = (TextureView) findViewById(R.id.cameraView);
+        mTextureView = (AutoFitTextureView) findViewById(R.id.cameraView);
+        openBackgroundThread();
     }
 
     public void onResume(){
         super.onResume();
 
-        openBackgroundThread();
 
         if(mTextureView.isAvailable()){
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
@@ -262,7 +265,7 @@ public class Camera extends AppCompatActivity{
         super.onPause();
     }
 
-    @Override
+   /* @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.distance_menu, menu);
         currentDistance = menu.getItem(0);
@@ -286,7 +289,7 @@ public class Camera extends AppCompatActivity{
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     private void setupCamera(int width, int height){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -358,6 +361,17 @@ public class Camera extends AppCompatActivity{
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largestImageSize);
+
+                int orientation = getResources().getConfiguration().orientation;
+
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    mTextureView.setAspectRatio(
+                            mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                } else {
+                    mTextureView.setAspectRatio(
+                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
+                }
+
                 mCameraId = cameraId;
             }
         } catch (CameraAccessException e){

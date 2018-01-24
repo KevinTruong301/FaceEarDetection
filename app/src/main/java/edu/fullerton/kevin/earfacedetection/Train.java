@@ -5,7 +5,6 @@ import android.media.Image;
 import android.os.Environment;
 import android.os.Vibrator;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -13,7 +12,6 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.File;
@@ -122,12 +120,12 @@ public class Train {
                         sizeMax = new Size(500, 500);
                     } else if (numBody == 2) {
                         haarPart = "/haarcascade_mcs_leftear.xml";
-                        sizeMin = new Size(80, 160);
-                        sizeMax = new Size(130, 200);
+                        sizeMin = new Size(50, 120);
+                        sizeMax = new Size(150, 250);
                     } else if (numBody == 1) {
                         haarPart = "/haarcascade_mcs_rightear.xml";
-                        sizeMin = new Size(80, 160);
-                        sizeMax = new Size(130, 200);
+                        sizeMin = new Size(50, 120);
+                        sizeMax = new Size(150, 250);
                     }
                 }
                 else if(distance.equals("medium")){
@@ -149,7 +147,7 @@ public class Train {
                 Log.d(TAG, "Looking for "+ haarPart);
                 String tempPath = getTempDirectoryPath();
                 CascadeClassifier faceDetector = new CascadeClassifier(extStorageDirectory + haarPart);
-                faceDetector.detectMultiScale(gray, faces, 1.05, 5, 2, sizeMin, sizeMax);
+                faceDetector.detectMultiScale(gray, faces, 1.05, 10, 2, sizeMin, sizeMax);
                 File partFolder = new File(tempPath + "/" + distance);
                 //Imgcodecs.imwrite(tempPath + "/" + distance + "/" + distance + "_" + numPic + ".jpg", gray);
 

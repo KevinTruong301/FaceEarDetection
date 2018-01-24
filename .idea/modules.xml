@@ -4,11 +4,8 @@
     <modules>
       <module fileurl="file://C:\Users\Kevin\Documents\FaceEarDetection\EarFaceDetection.iml" filepath="C:\Users\Kevin\Documents\FaceEarDetection\EarFaceDetection.iml" />
       <module fileurl="file://$PROJECT_DIR$/FaceEarDetection.iml" filepath="$PROJECT_DIR$/FaceEarDetection.iml" />
-      <module fileurl="file://C:\Users\Kevin\Documents\FaceEarDetection\FaceEarDetection.iml" filepath="C:\Users\Kevin\Documents\FaceEarDetection\FaceEarDetection.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://C:\Users\Kevin\Documents\FaceEarDetection\app\app.iml" filepath="C:\Users\Kevin\Documents\FaceEarDetection\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary331/openCVLibrary331.iml" filepath="$PROJECT_DIR$/openCVLibrary331/openCVLibrary331.iml" />
-      <module fileurl="file://C:\Users\Kevin\Documents\FaceEarDetection\openCVLibrary331\openCVLibrary331.iml" filepath="C:\Users\Kevin\Documents\FaceEarDetection\openCVLibrary331\openCVLibrary331.iml" />
     </modules>
   </component>
 </project>
